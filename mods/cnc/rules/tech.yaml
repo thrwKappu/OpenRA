@@ -18,6 +18,7 @@ V19:
 		ValidStances: Neutral, Enemy
 	SpawnActorOnDeath:
 		Actor: V19.Husk
+	UpdatesDerrickCount:
 
 V19.Husk:
 	Inherits: ^CivBuildingHusk
@@ -104,6 +105,7 @@ BIO:
 		OnHoldAudio: OnHold
 		CancelledAudio: Cancelled
 	ProductionBar:
+		ProductionType: Biolab
 	RallyPoint:
 		Offset: -1,-1
 	SpawnActorOnDeath:

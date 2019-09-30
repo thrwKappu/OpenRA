@@ -74,10 +74,8 @@ GACTWR:
 		TurnSpeed: 10
 		InitialFacing: 224
 	AttackTurreted:
-		RequiresCondition: tower.vulcan || tower.rocket || tower.sam
+		RequiresCondition: !build-incomplete && (tower.vulcan || tower.rocket || tower.sam)
 		PauseOnCondition: empdisable || disabled
-	WithMakeAnimation:
-		Condition: build-incomplete
 	WithSpriteTurret@VULC:
 		RequiresCondition: !build-incomplete && tower.vulcan
 		Recoils: false
@@ -135,9 +133,9 @@ GACTWR:
 			tower.rocket: tower.rocket
 			tower.sam: tower.sam
 		Requirements:
-			tower.vulcan: !build-incomplete
-			tower.rocket: !build-incomplete
-			tower.sam: !build-incomplete
+			tower.vulcan: !build-incomplete && !tower.vulcan && !tower.rocket && !tower.sam
+			tower.rocket: !build-incomplete && !tower.rocket && !tower.vulcan && !tower.sam
+			tower.sam: !build-incomplete && !tower.vulcan && !tower.rocket && !tower.sam
 	ProvidesPrerequisite@buildingname:
 	SelectionDecorations:
 	Replacement:

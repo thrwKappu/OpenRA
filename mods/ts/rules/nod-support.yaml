@@ -71,8 +71,6 @@ NAPOST:
 		Amount: -25
 	RevealsShroud:
 		Range: 4c0
-	WithMakeAnimation:
-		Condition: build-incomplete
 	WithIdleOverlay@LIGHTS:
 		RequiresCondition: !build-incomplete && !disabled
 		Sequence: lights
@@ -93,6 +91,8 @@ NAFNCE:
 		Types: laserfence
 	-Crushable:
 	-Sellable:
+	Demolishable:
+		-Condition:
 	-Targetable:
 	-Building:
 	EnergyWall:
@@ -169,12 +169,11 @@ NALASR:
 		InitialFacing: 224
 		Offset: 298,-171,288
 	AttackTurreted:
+		RequiresCondition: !build-incomplete
 		PauseOnCondition: empdisable || disabled
 	Armament:
 		Weapon: TurretLaserFire
 		LocalOffset: 498,0,317
-	WithMakeAnimation:
-		Condition: build-incomplete
 	RenderVoxels:
 	WithVoxelTurret:
 		RequiresCondition: !build-incomplete
@@ -214,6 +213,7 @@ NAOBEL:
 		Weapon: ObeliskLaserFire
 		LocalOffset: 1980,297,1131
 	AttackCharges:
+		RequiresCondition: !build-incomplete
 		PauseOnCondition: empdisable || disabled
 		ChargeLevel: 65
 		ChargingCondition: charging
@@ -221,8 +221,6 @@ NAOBEL:
 		RequiresCondition: charging && !disabled
 		SoundFiles: obelpowr.aud
 		Interval: 30, 40
-	WithMakeAnimation:
-		Condition: build-incomplete
 	WithChargeOverlay:
 		RequiresCondition: !build-incomplete
 		Palette: player
@@ -262,9 +260,8 @@ NASAM:
 		TurnSpeed: 10
 		InitialFacing: 224
 	AttackTurreted:
+		RequiresCondition: !build-incomplete
 		PauseOnCondition: empdisable || disabled
-	WithMakeAnimation:
-		Condition: build-incomplete
 	WithSpriteTurret:
 		RequiresCondition: !build-incomplete
 		Recoils: false
@@ -300,10 +297,8 @@ NASTLH:
 	RevealsShroud:
 		Range: 6c0
 		MaxHeightDelta: 3
-	WithMakeAnimation:
-		Condition: build-incomplete
 	WithIdleOverlay@pulse:
-		RequiresCondition: !build-incomplete && !disabled
+		RequiresCondition: !build-incomplete && !empdisable && !disabled
 		Sequence: pulse
 	WithRangeCircle:
 		Range: 12c0
@@ -311,7 +306,7 @@ NASTLH:
 	Power:
 		Amount: -350
 	ProximityExternalCondition:
-		RequiresCondition: !disabled
+		RequiresCondition: !empdisable && !disabled
 		Condition: cloakgenerator
 		Range: 12c0
 		EnableSound: cloak5.aud
@@ -350,8 +345,6 @@ NAMISL:
 		Type: Wood
 	RevealsShroud:
 		Range: 4c0
-	WithMakeAnimation:
-		Condition: build-incomplete
 	WithIdleOverlay@LIGHTS:
 		RequiresCondition: !build-incomplete && !disabled
 		Sequence: idle-lights
@@ -365,18 +358,25 @@ NAMISL:
 		Icon: clustermissile
 		ChargeInterval: 13500
 		Description: Cluster Missile
-		LongDesc: Launches a conventional warhead\nat a target location.
+		LongDesc: Launches an explosive cluster warhead\nat a target location.
 		EndChargeSpeechNotification: ClusterMissileReady
 		SelectTargetSpeechNotification: SelectTarget
 		IncomingSpeechNotification: MissileLaunchDetected
 		LaunchSound: icbm1.aud
 		MissileWeapon: ClusterMissile
-		SpawnOffset: 0,427,0
+		MissileDelay: 10
+		DetonationAltitude: 5c0
+		SpawnOffset: 72,72,0
 		DisplayTimerStances: None
 		DisplayBeacon: False
 		DisplayRadarPing: True
 		BeaconPoster:
 		CameraRange: 10c0
+		FlightVelocity: 1c0
+		TrailImage: small_smoke_trail
+		TrailPalette: effectalpha75
+		TrailInterval: 0
+		TrailSequences: idle
 	WithNukeLaunchOverlay:
 	SelectionDecorations:
 
@@ -420,8 +420,6 @@ NAWAST:
 		Actor: WEED
 		SpawnOffset: 3,1
 		Facing: 160
-	WithMakeAnimation:
-		Condition: build-incomplete
 	WithIdleOverlay@GLOW:
 		RequiresCondition: !build-incomplete
 		Sequence: idle-glow

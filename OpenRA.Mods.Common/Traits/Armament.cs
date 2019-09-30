@@ -1,6 +1,6 @@
 #region Copyright & License Information
 /*
- * Copyright 2007-2018 The OpenRA Developers (see AUTHORS)
+ * Copyright 2007-2019 The OpenRA Developers (see AUTHORS)
  * This file is part of OpenRA, which is free software. It is made
  * available to you under the terms of the GNU General Public License
  * as published by the Free Software Foundation, either version 3 of
@@ -29,7 +29,8 @@ namespace OpenRA.Mods.Common.Traits
 	{
 		public readonly string Name = "primary";
 
-		[WeaponReference, FieldLoader.Require]
+		[WeaponReference]
+		[FieldLoader.Require]
 		[Desc("Has to be defined in weapons.yaml as well.")]
 		public readonly string Weapon = null;
 
@@ -55,8 +56,9 @@ namespace OpenRA.Mods.Common.Traits
 		[Desc("Muzzle flash sequence to render")]
 		public readonly string MuzzleSequence = null;
 
+		[PaletteReference]
 		[Desc("Palette to render Muzzle flash sequence in")]
-		[PaletteReference] public readonly string MuzzlePalette = "effect";
+		public readonly string MuzzlePalette = "effect";
 
 		[Desc("Use multiple muzzle images if non-zero")]
 		public readonly int MuzzleSplitFacings = 0;
@@ -101,7 +103,7 @@ namespace OpenRA.Mods.Common.Traits
 		}
 	}
 
-	public class Armament : PausableConditionalTrait<ArmamentInfo>, ITick, IExplodeModifier
+	public class Armament : PausableConditionalTrait<ArmamentInfo>, ITick
 	{
 		public readonly WeaponInfo Weapon;
 		public readonly Barrel[] Barrels;
@@ -327,10 +329,10 @@ namespace OpenRA.Mods.Common.Traits
 						self.World.Add(projectile);
 
 					if (args.Weapon.Report != null && args.Weapon.Report.Any())
-						Game.Sound.Play(SoundType.World, args.Weapon.Report.Random(self.World.SharedRandom), self.CenterPosition);
+						Game.Sound.Play(SoundType.World, args.Weapon.Report, self.World, self.CenterPosition);
 
 					if (Burst == args.Weapon.Burst && args.Weapon.StartBurstReport != null && args.Weapon.StartBurstReport.Any())
-						Game.Sound.Play(SoundType.World, args.Weapon.StartBurstReport.Random(self.World.SharedRandom), self.CenterPosition);
+						Game.Sound.Play(SoundType.World, args.Weapon.StartBurstReport, self.World, self.CenterPosition);
 
 					foreach (var na in notifyAttacks)
 						na.Attacking(self, target, this, barrel);
@@ -356,12 +358,7 @@ namespace OpenRA.Mods.Common.Traits
 				Burst = Weapon.Burst;
 
 				if (Weapon.AfterFireSound != null && Weapon.AfterFireSound.Any())
-				{
-					ScheduleDelayedAction(Weapon.AfterFireSoundDelay, () =>
-					{
-						Game.Sound.Play(SoundType.World, Weapon.AfterFireSound.Random(self.World.SharedRandom), self.CenterPosition);
-					});
-				}
+					ScheduleDelayedAction(Weapon.AfterFireSoundDelay, () => Game.Sound.Play(SoundType.World, Weapon.AfterFireSound, self.World, self.CenterPosition));
 
 				foreach (var nbc in notifyBurstComplete)
 					nbc.FiredBurst(self, target, this);
@@ -369,8 +366,6 @@ namespace OpenRA.Mods.Common.Traits
 		}
 
 		public virtual bool IsReloading { get { return FireDelay > 0 || IsTraitDisabled; } }
-		public virtual bool AllowExplode { get { return !IsReloading; } }
-		bool IExplodeModifier.ShouldExplode(Actor self) { return AllowExplode; }
 
 		public WVec MuzzleOffset(Actor self, Barrel b)
 		{

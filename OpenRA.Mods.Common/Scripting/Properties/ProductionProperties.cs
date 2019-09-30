@@ -1,6 +1,6 @@
 #region Copyright & License Information
 /*
- * Copyright 2007-2018 The OpenRA Developers (see AUTHORS)
+ * Copyright 2007-2019 The OpenRA Developers (see AUTHORS)
  * This file is part of OpenRA, which is free software. It is made
  * available to you under the terms of the GNU General Public License
  * as published by the Free Software Foundation, either version 3 of
@@ -24,12 +24,12 @@ namespace OpenRA.Mods.Common.Scripting
 	[ScriptPropertyGroup("Production")]
 	public class ProductionProperties : ScriptActorProperties, Requires<ProductionInfo>
 	{
-		readonly Production p;
+		readonly Production[] productionTraits;
 
 		public ProductionProperties(ScriptContext context, Actor self)
 			: base(context, self)
 		{
-			p = self.Trait<Production>();
+			productionTraits = self.TraitsImplementing<Production>().ToArray();
 		}
 
 		[ScriptActorPropertyActivity]
@@ -41,14 +41,27 @@ namespace OpenRA.Mods.Common.Scripting
 			if (!Self.World.Map.Rules.Actors.TryGetValue(actorType, out actorInfo))
 				throw new LuaException("Unknown actor type '{0}'".F(actorType));
 
-			var faction = factionVariant ?? BuildableInfo.GetInitialFaction(actorInfo, p.Faction);
-			var inits = new TypeDictionary
+			Self.QueueActivity(new WaitFor(() =>
 			{
-				new OwnerInit(Self.Owner),
-				new FactionInit(faction)
-			};
+				// Go through all available traits and see which one successfully produces
+				foreach (var p in productionTraits)
+				{
+					if (!string.IsNullOrEmpty(productionType) && !p.Info.Produces.Contains(productionType))
+						continue;
 
-			Self.QueueActivity(new WaitFor(() => p.Produce(Self, actorInfo, productionType, inits)));
+					var inits = new TypeDictionary
+					{
+						new OwnerInit(Self.Owner),
+						new FactionInit(factionVariant ?? BuildableInfo.GetInitialFaction(actorInfo, p.Faction))
+					};
+
+					if (p.Produce(Self, actorInfo, productionType, inits))
+						return true;
+				}
+
+				// We didn't produce anything, wait until we do
+				return false;
+			}));
 		}
 	}
 

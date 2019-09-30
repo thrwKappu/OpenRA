@@ -1399,6 +1399,8 @@ GALITE:
 		Palette: terraindecoration
 	-WithMakeAnimation:
 	-WithDeathAnimation:
+	Sellable:
+		RequiresCondition: !being-demolished
 	Health:
 		HP: 60000
 	Armor:
@@ -1421,6 +1423,8 @@ GALITE:
 	-ExternalCondition@CRATE-CLOAK:
 	MapEditorData:
 		Categories: Civilian building
+	Capturable:
+		-RequiresCondition:
 
 TSTLAMP:
 	Inherits: GALITE

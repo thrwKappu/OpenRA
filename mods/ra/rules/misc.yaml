@@ -31,14 +31,14 @@ CRATE:
 		SelectionShares: 5
 	HideMapCrateAction:
 		SelectionShares: 5
-		Effect: hide-map
+		Sequence: hide-map
 	HealUnitsCrateAction:
-		Notification: heal2.aud
+		Sound: heal2.aud
 		SelectionShares: 2
-		Effect: heal
+		Sequence: heal
 	RevealMapCrateAction:
 		SelectionShares: 1
-		Effect: reveal-map
+		Sequence: reveal-map
 	DuplicateUnitCrateAction:
 		SelectionShares: 10
 		MaxAmount: 5
@@ -104,8 +104,8 @@ CRATE:
 		TimeDelay: 4500
 	GrantExternalConditionCrateAction@invuln:
 		SelectionShares: 5
-		Effect: invuln
-		Notification: ironcur9.aud
+		Sequence: invuln
+		Sound: ironcur9.aud
 		Condition: invulnerability
 		Duration: 600
 
@@ -125,9 +125,9 @@ HEALCRATE:
 	Tooltip:
 		Name: Heal Crate
 	HealUnitsCrateAction:
-		Notification: heal2.aud
+		Sound: heal2.aud
 		SelectionShares: 1
-		Effect: heal
+		Sequence: heal
 
 WCRATE:
 	Inherits: ^Crate
@@ -170,9 +170,6 @@ camera.spyplane:
 	Inherits: CAMERA
 	EditorOnlyTooltip:
 		Name: (support power proxy camera)
-	DetectCloaked:
-		Range: 10c0
-		CloakTypes: Cloak, Hijacker
 
 SONAR:
 	Inherits: camera.spyplane
@@ -181,6 +178,7 @@ SONAR:
 	-RevealsShroud:
 	DetectCloaked:
 		CloakTypes: Underwater
+		Range: 10c0
 
 FLARE:
 	Immobile:
@@ -218,9 +216,13 @@ MINE:
 	AppearsOnRadar:
 	RadarColorFromTerrain:
 		Terrain: Ore
+	AppearsOnMapPreview:
+		Terrain: Ore
 	SeedsResource:
 	MapEditorData:
 		Categories: Resource spawn
+	RequiresSpecificOwners:
+		ValidOwnerNames: Neutral
 
 GMINE:
 	Inherits@1: ^SpriteActor
@@ -237,10 +239,14 @@ GMINE:
 	AppearsOnRadar:
 	RadarColorFromTerrain:
 		Terrain: Gems
+	AppearsOnMapPreview:
+		Terrain: Gems
 	SeedsResource:
 		ResourceType: Gems
 	MapEditorData:
 		Categories: Resource spawn
+	RequiresSpecificOwners:
+		ValidOwnerNames: Neutral
 
 RAILMINE:
 	Inherits@1: ^SpriteActor
@@ -257,6 +263,8 @@ RAILMINE:
 	MapEditorData:
 		ExcludeTilesets: INTERIOR
 		Categories: Civilian building
+	RequiresSpecificOwners:
+		ValidOwnerNames: Neutral
 
 QUEE:
 	Inherits@1: ^SpriteActor
@@ -330,6 +338,7 @@ powerproxy.sonarpulse:
 		DeploySound: sonpulse.aud
 		EffectImage: moveflsh
 		EffectPalette: moveflash
+		SupportPowerPaletteOrder: 80
 
 powerproxy.paratroopers:
 	AlwaysVisible:
@@ -373,6 +382,8 @@ mpspawn:
 		QuantizedFacings: 1
 	MapEditorData:
 		Categories: System
+	RequiresSpecificOwners:
+		ValidOwnerNames: Neutral
 
 waypoint:
 	Interactable:

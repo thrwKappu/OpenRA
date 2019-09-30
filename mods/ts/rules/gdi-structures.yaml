@@ -22,8 +22,6 @@ GAPOWR:
 	RevealsShroud:
 		Range: 4c0
 		MaxHeightDelta: 3
-	WithMakeAnimation:
-		Condition: build-incomplete
 	WithIdleOverlay@LIGHTS:
 		RequiresCondition: !build-incomplete && !empdisable
 		Sequence: idle-lights
@@ -46,7 +44,7 @@ GAPOWR:
 		Conditions:
 			powrup: powrup.a
 		Requirements:
-			powrup: !build-incomplete
+			powrup: !build-incomplete && !powrup.a
 	Power@pluga:
 		RequiresCondition: !empdisable && powrup.a
 		Amount: 50
@@ -59,7 +57,7 @@ GAPOWR:
 		Conditions:
 			powrup: powrup.b
 		Requirements:
-			powrup: !build-incomplete
+			powrup: !build-incomplete && !powrup.b
 	WithIdleOverlay@plugb:
 		RequiresCondition: !build-incomplete && powrup.b
 		PauseOnCondition: empdisable
@@ -101,6 +99,7 @@ GAPILE:
 		Offset: 2,3
 		Palette: mouse
 		IsPlayerPalette: false
+		LineWidth: 2
 	Exit@1:
 		SpawnOffset: -256,1024,0
 		ExitCell: 2,2
@@ -112,8 +111,7 @@ GAPILE:
 		PrimaryCondition: primary
 		SelectionNotification: PrimaryBuildingSelected
 	ProductionBar:
-	WithMakeAnimation:
-		Condition: build-incomplete
+		ProductionType: Infantry
 	WithIdleOverlay@LIGHTS:
 		RequiresCondition: !build-incomplete
 		Sequence: idle-lights
@@ -166,6 +164,7 @@ GAWEAP:
 		Offset: 4,1
 		Palette: mouse
 		IsPlayerPalette: false
+		LineWidth: 2
 	Exit@1:
 		SpawnOffset: -384,-384,0
 		ExitCell: 3,1
@@ -178,8 +177,7 @@ GAWEAP:
 		PrimaryCondition: primary
 		SelectionNotification: PrimaryBuildingSelected
 	ProductionBar:
-	WithMakeAnimation:
-		Condition: build-incomplete
+		ProductionType: Vehicle
 	WithIdleOverlay@ROOF:
 		RequiresCondition: !build-incomplete
 		Sequence: idle-roof
@@ -235,6 +233,7 @@ GAHPAD:
 	RallyPoint:
 		Palette: mouse
 		IsPlayerPalette: false
+		LineWidth: 2
 	Production:
 		Produces: Air
 		PauseOnCondition: empdisable
@@ -248,8 +247,7 @@ GAHPAD:
 		PlayerExperience: 15
 		StartRepairingNotification: Repairing
 	ProductionBar:
-	WithMakeAnimation:
-		Condition: build-incomplete
+		ProductionType: Air
 	WithIdleOverlay@PLATFORM:
 		RequiresCondition: !build-incomplete
 		Sequence: idle-platform
@@ -306,8 +304,7 @@ GADEPT:
 	RallyPoint:
 		Palette: mouse
 		IsPlayerPalette: false
-	WithMakeAnimation:
-		Condition: build-incomplete
+		LineWidth: 2
 	WithIdleOverlay@LIGHT:
 		RequiresCondition: !build-incomplete
 		Sequence: idle-light
@@ -373,8 +370,6 @@ GARADR:
 	RevealsShroud:
 		Range: 10c0
 		MaxHeightDelta: 3
-	WithMakeAnimation:
-		Condition: build-incomplete
 	WithIdleOverlay@DISH:
 		RequiresCondition: !build-incomplete
 		PauseOnCondition: disabled || empdisable
@@ -414,8 +409,6 @@ GATECH:
 	RevealsShroud:
 		Range: 4c0
 		MaxHeightDelta: 3
-	WithMakeAnimation:
-		Condition: build-incomplete
 	WithIdleOverlay@LIGHTS:
 		RequiresCondition: !build-incomplete && !disabled
 		Sequence: idle-lights
@@ -443,8 +436,6 @@ GAPLUG:
 	Building:
 		Footprint: xxx xxx
 		Dimensions: 2,3
-	WithMakeAnimation:
-		Condition: build-incomplete
 	WithIdleOverlay@DISH:
 		RequiresCondition: !build-incomplete
 		PauseOnCondition: disabled || empdisable

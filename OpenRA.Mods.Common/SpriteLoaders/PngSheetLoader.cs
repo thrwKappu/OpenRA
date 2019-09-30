@@ -1,6 +1,6 @@
-﻿#region Copyright & License Information
+#region Copyright & License Information
 /*
- * Copyright 2007-2018 The OpenRA Developers (see AUTHORS)
+ * Copyright 2007-2019 The OpenRA Developers (see AUTHORS)
  * This file is part of OpenRA, which is free software. It is made
  * available to you under the terms of the GNU General Public License
  * as published by the Free Software Foundation, either version 3 of
@@ -11,14 +11,25 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using OpenRA.FileFormats;
 using OpenRA.Graphics;
+using OpenRA.Mods.Common.Graphics;
+using OpenRA.Primitives;
 
 namespace OpenRA.Mods.Common.SpriteLoaders
 {
+	public class PngSheetMetadata
+	{
+		public readonly ReadOnlyDictionary<string, string> Metadata;
+
+		public PngSheetMetadata(Dictionary<string, string> metadata)
+		{
+			Metadata = new ReadOnlyDictionary<string, string>(metadata);
+		}
+	}
+
 	public class PngSheetLoader : ISpriteLoader
 	{
 		class PngSheetFrame : ISpriteFrame
@@ -30,15 +41,19 @@ namespace OpenRA.Mods.Common.SpriteLoaders
 			public bool DisableExportPadding { get { return false; } }
 		}
 
-		public bool TryParseSprite(Stream s, out ISpriteFrame[] frames)
+		public bool TryParseSprite(Stream s, out ISpriteFrame[] frames, out TypeDictionary metadata)
 		{
+			metadata = null;
+			frames = null;
 			if (!Png.Verify(s))
-			{
-				frames = null;
 				return false;
-			}
 
 			var png = new Png(s);
+
+			// Only supports paletted images
+			if (png.Palette == null)
+				return false;
+
 			List<Rectangle> frameRegions;
 			List<float2> frameOffsets;
 
@@ -65,6 +80,12 @@ namespace OpenRA.Mods.Common.SpriteLoaders
 				for (var y = 0; y < frames[i].Size.Height; y++)
 					Array.Copy(png.Data, frameStart + y * png.Width, frames[i].Data, y * frames[i].Size.Width, frames[i].Size.Width);
 			}
+
+			metadata = new TypeDictionary
+			{
+				new PngSheetMetadata(png.EmbeddedData),
+				new EmbeddedSpritePalette(png.Palette.Select(x => (uint)x.ToArgb()).ToArray())
+			};
 
 			return true;
 		}

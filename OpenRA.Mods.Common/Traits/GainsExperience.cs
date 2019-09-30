@@ -1,6 +1,6 @@
 #region Copyright & License Information
 /*
- * Copyright 2007-2018 The OpenRA Developers (see AUTHORS)
+ * Copyright 2007-2019 The OpenRA Developers (see AUTHORS)
  * This file is part of OpenRA, which is free software. It is made
  * available to you under the terms of the GNU General Public License
  * as published by the Free Software Foundation, either version 3 of
@@ -11,7 +11,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using OpenRA.Mods.Common.Effects;
 using OpenRA.Primitives;
 using OpenRA.Traits;
@@ -30,8 +29,16 @@ namespace OpenRA.Mods.Common.Traits
 		[GrantedConditionReference]
 		public IEnumerable<string> LinterConditions { get { return Conditions.Values; } }
 
+		[Desc("Image for the level up sprite.")]
+		public readonly string LevelUpImage = null;
+
+		[SequenceReference("Image")]
+		[Desc("Sequence for the level up sprite. Needs to be present on Image.")]
+		public readonly string LevelUpSequence = "levelup";
+
+		[PaletteReference]
 		[Desc("Palette for the level up sprite.")]
-		[PaletteReference] public readonly string LevelUpPalette = "effect";
+		public readonly string LevelUpPalette = "effect";
 
 		[Desc("Multiplier to apply to the Conditions keys. Defaults to the actor's value.")]
 		public readonly int ExperienceModifier = -1;
@@ -55,9 +62,11 @@ namespace OpenRA.Mods.Common.Traits
 		ConditionManager conditionManager;
 
 		// Stored as a percentage of our value
-		[Sync] int experience = 0;
+		[Sync]
+		int experience = 0;
 
-		[Sync] public int Level { get; private set; }
+		[Sync]
+		public int Level { get; private set; }
 		public readonly int MaxLevel;
 
 		public GainsExperience(ActorInitializer init, GainsExperienceInfo info)
@@ -108,7 +117,8 @@ namespace OpenRA.Mods.Common.Traits
 				if (!silent)
 				{
 					Game.Sound.PlayNotification(self.World.Map.Rules, self.Owner, "Sounds", info.LevelUpNotification, self.Owner.Faction.InternalName);
-					self.World.AddFrameEndTask(w => w.Add(new CrateEffect(self, "levelup", info.LevelUpPalette)));
+					if (info.LevelUpImage != null && info.LevelUpSequence != null)
+						self.World.AddFrameEndTask(w => w.Add(new SpriteEffect(self, w, info.LevelUpImage, info.LevelUpSequence, info.LevelUpPalette)));
 				}
 			}
 		}
@@ -131,7 +141,9 @@ namespace OpenRA.Mods.Common.Traits
 
 	class ExperienceInit : IActorInit<int>
 	{
-		[FieldFromYamlKey] readonly int value;
+		[FieldFromYamlKey]
+		readonly int value;
+
 		public ExperienceInit() { }
 		public ExperienceInit(int init) { value = init; }
 		public int Value(World world) { return value; }

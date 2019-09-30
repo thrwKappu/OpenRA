@@ -1,6 +1,6 @@
 #region Copyright & License Information
 /*
- * Copyright 2007-2018 The OpenRA Developers (see AUTHORS)
+ * Copyright 2007-2019 The OpenRA Developers (see AUTHORS)
  * This file is part of OpenRA, which is free software. It is made
  * available to you under the terms of the GNU General Public License
  * as published by the Free Software Foundation, either version 3 of
@@ -9,7 +9,9 @@
  */
 #endregion
 
+using System;
 using System.Collections.Generic;
+using OpenRA.Graphics;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.Common.Traits
@@ -20,7 +22,7 @@ namespace OpenRA.Mods.Common.Traits
 		public object Create(ActorInitializer init) { return new PlayerStatistics(init.Self); }
 	}
 
-	public class PlayerStatistics : ITick, IResolveOrder, INotifyCreated
+	public class PlayerStatistics : ITick, IResolveOrder, INotifyCreated, IWorldLoaded
 	{
 		PlayerResources resources;
 		PlayerExperience experience;
@@ -43,8 +45,10 @@ namespace OpenRA.Mods.Common.Traits
 			}
 		}
 
-		public Queue<int> EarnedSamples = new Queue<int>(100);
+		public List<int> EarnedSamples = new List<int>(100);
 		int earnedAtBeginningOfMinute;
+
+		public List<int> ArmySamples = new List<int>(100);
 
 		public int KillsCost;
 		public int DeathsCost;
@@ -54,6 +58,10 @@ namespace OpenRA.Mods.Common.Traits
 
 		public int BuildingsKilled;
 		public int BuildingsDead;
+
+		public int ArmyValue;
+		int replayTimestep;
+		int ticks;
 
 		public PlayerStatistics(Actor self) { }
 
@@ -65,16 +73,30 @@ namespace OpenRA.Mods.Common.Traits
 
 		void UpdateEarnedThisMinute()
 		{
-			EarnedSamples.Enqueue(EarnedThisMinute);
+			EarnedSamples.Add(EarnedThisMinute);
 			earnedAtBeginningOfMinute = resources != null ? resources.Earned : 0;
-			if (EarnedSamples.Count > 100)
-				EarnedSamples.Dequeue();
+		}
+
+		void UpdateArmyThisMinute()
+		{
+			ArmySamples.Add(ArmyValue);
 		}
 
 		void ITick.Tick(Actor self)
 		{
-			if (self.World.WorldTick % 1500 == 1)
+			if (self.Owner.WinState != WinState.Undefined)
+				return;
+
+			ticks++;
+
+			var timestep = self.World.IsReplay ? replayTimestep : self.World.Timestep;
+
+			if (ticks * timestep >= 60000)
+			{
+				ticks = 0;
 				UpdateEarnedThisMinute();
+				UpdateArmyThisMinute();
+			}
 		}
 
 		public void ResolveOrder(Actor self, Order order)
@@ -82,7 +104,6 @@ namespace OpenRA.Mods.Common.Traits
 			switch (order.OrderString)
 			{
 				case "Chat":
-				case "TeamChat":
 				case "HandshakeResponse":
 				case "PauseGame":
 				case "StartGame":
@@ -103,13 +124,41 @@ namespace OpenRA.Mods.Common.Traits
 				return;
 			OrderCount++;
 		}
+
+		public void WorldLoaded(World w, WorldRenderer wr)
+		{
+			if (w.IsReplay)
+				replayTimestep = w.WorldActor.Trait<MapOptions>().GameSpeed.Timestep;
+
+			UpdateEarnedThisMinute();
+			UpdateArmyThisMinute();
+		}
 	}
 
 	[Desc("Attach this to a unit to update observer stats.")]
-	public class UpdatesPlayerStatisticsInfo : TraitInfo<UpdatesPlayerStatistics> { }
-
-	public class UpdatesPlayerStatistics : INotifyKilled
+	public class UpdatesPlayerStatisticsInfo : ITraitInfo
 	{
+		[Desc("Add to army value in statistics")]
+		public bool AddToArmyValue = false;
+
+		public object Create(ActorInitializer init) { return new UpdatesPlayerStatistics(this, init.Self); }
+	}
+
+	public class UpdatesPlayerStatistics : INotifyKilled, INotifyCreated, INotifyOwnerChanged, INotifyActorDisposing
+	{
+		UpdatesPlayerStatisticsInfo info;
+		PlayerStatistics playerStats;
+		int cost = 0;
+		bool includedInArmyValue = false;
+
+		public UpdatesPlayerStatistics(UpdatesPlayerStatisticsInfo info, Actor self)
+		{
+			this.info = info;
+			if (self.Info.HasTraitInfo<ValuedInfo>())
+				cost = self.Info.TraitInfo<ValuedInfo>().Cost;
+			playerStats = self.Owner.PlayerActor.Trait<PlayerStatistics>();
+		}
+
 		void INotifyKilled.Killed(Actor self, AttackInfo e)
 		{
 			if (self.Owner.WinState != WinState.Undefined)
@@ -128,11 +177,40 @@ namespace OpenRA.Mods.Common.Traits
 				defenderStats.UnitsDead++;
 			}
 
-			if (self.Info.HasTraitInfo<ValuedInfo>())
+			attackerStats.KillsCost += cost;
+			defenderStats.DeathsCost += cost;
+			if (includedInArmyValue)
 			{
-				var cost = self.Info.TraitInfo<ValuedInfo>().Cost;
-				attackerStats.KillsCost += cost;
-				defenderStats.DeathsCost += cost;
+				defenderStats.ArmyValue -= cost;
+				includedInArmyValue = false;
+			}
+		}
+
+		void INotifyCreated.Created(Actor self)
+		{
+			includedInArmyValue = info.AddToArmyValue;
+			if (includedInArmyValue)
+				playerStats.ArmyValue += cost;
+		}
+
+		void INotifyOwnerChanged.OnOwnerChanged(Actor self, Player oldOwner, Player newOwner)
+		{
+			var newOwnerStats = newOwner.PlayerActor.Trait<PlayerStatistics>();
+			if (includedInArmyValue)
+			{
+				playerStats.ArmyValue -= cost;
+				newOwnerStats.ArmyValue += cost;
+			}
+
+			playerStats = newOwnerStats;
+		}
+
+		void INotifyActorDisposing.Disposing(Actor self)
+		{
+			if (includedInArmyValue)
+			{
+				playerStats.ArmyValue -= cost;
+				includedInArmyValue = false;
 			}
 		}
 	}

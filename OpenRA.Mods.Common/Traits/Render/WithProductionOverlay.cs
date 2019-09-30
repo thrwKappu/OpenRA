@@ -1,6 +1,6 @@
 #region Copyright & License Information
 /*
- * Copyright 2007-2018 The OpenRA Developers (see AUTHORS)
+ * Copyright 2007-2019 The OpenRA Developers (see AUTHORS)
  * This file is part of OpenRA, which is free software. It is made
  * available to you under the terms of the GNU General Public License
  * as published by the Free Software Foundation, either version 3 of
@@ -9,7 +9,6 @@
  */
 #endregion
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenRA.Graphics;
@@ -24,14 +23,16 @@ namespace OpenRA.Mods.Common.Traits.Render
 		[Desc("Queues that should be producing for this overlay to render.")]
 		public readonly HashSet<string> Queues = new HashSet<string>();
 
+		[SequenceReference]
 		[Desc("Sequence name to use")]
-		[SequenceReference] public readonly string Sequence = "production-overlay";
+		public readonly string Sequence = "production-overlay";
 
 		[Desc("Position relative to body")]
 		public readonly WVec Offset = WVec.Zero;
 
+		[PaletteReference("IsPlayerPalette")]
 		[Desc("Custom palette name")]
-		[PaletteReference("IsPlayerPalette")] public readonly string Palette = null;
+		public readonly string Palette = null;
 
 		[Desc("Custom palette is a player palette BaseName")]
 		public readonly bool IsPlayerPalette = false;
@@ -42,7 +43,7 @@ namespace OpenRA.Mods.Common.Traits.Render
 	public class WithProductionOverlay : PausableConditionalTrait<WithProductionOverlayInfo>, INotifyDamageStateChanged, INotifyCreated, INotifyOwnerChanged
 	{
 		readonly Animation overlay;
-		readonly ProductionInfo production;
+		readonly ProductionInfo[] productionInfos;
 		ProductionQueue[] queues;
 
 		bool IsProducing
@@ -56,7 +57,7 @@ namespace OpenRA.Mods.Common.Traits.Render
 			var rs = self.Trait<RenderSprites>();
 			var body = self.Trait<BodyOrientation>();
 
-			production = self.Info.TraitInfo<ProductionInfo>();
+			productionInfos = self.Info.TraitInfos<ProductionInfo>().ToArray();
 
 			overlay = new Animation(self.World, rs.GetImage(self), () => IsTraitPaused);
 			overlay.PlayRepeating(info.Sequence);
@@ -72,7 +73,7 @@ namespace OpenRA.Mods.Common.Traits.Render
 		{
 			// Per-actor production
 			queues = self.TraitsImplementing<ProductionQueue>()
-				.Where(q => production.Produces.Contains(q.Info.Type))
+				.Where(q => productionInfos.Any(p => p.Produces.Contains(q.Info.Type)))
 				.Where(q => !Info.Queues.Any() || Info.Queues.Contains(q.Info.Type))
 				.ToArray();
 
@@ -80,7 +81,7 @@ namespace OpenRA.Mods.Common.Traits.Render
 			{
 				// Player-wide production
 				queues = self.Owner.PlayerActor.TraitsImplementing<ProductionQueue>()
-					.Where(q => production.Produces.Contains(q.Info.Type))
+					.Where(q => productionInfos.Any(p => p.Produces.Contains(q.Info.Type)))
 					.Where(q => !Info.Queues.Any() || Info.Queues.Contains(q.Info.Type))
 					.ToArray();
 			}

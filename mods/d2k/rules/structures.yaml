@@ -5,6 +5,7 @@
 		TerrainTypes: Rock
 		BuildSounds: CHUNG.WAV
 		AllowInvalidPlacement: true
+	FootprintPlaceBuildingPreview:
 	RequiresBuildableArea:
 		AreaTypes: building
 		Adjacent: 4
@@ -78,7 +79,6 @@ construction_yard:
 		Range: 5c768
 	Production:
 		Produces: Building, Upgrade
-	Exit:
 	Valued:
 		Cost: 2000
 	Tooltip:
@@ -89,6 +89,7 @@ construction_yard:
 		ActorTypes: light_inf, light_inf, engineer
 	BaseBuilding:
 	ProductionBar:
+		ProductionType: Building
 	Power:
 		Amount: 20
 	RenderSprites:
@@ -215,6 +216,7 @@ barracks:
 		ProductionQueues: Infantry
 		SelectionNotification: PrimaryBuildingSelected
 	ProductionBar:
+		ProductionType: Infantry
 	ProvidesPrerequisite@atreides:
 		Prerequisite: barracks.atreides
 		Factions: atreides
@@ -351,8 +353,9 @@ silo:
 			fremen: silo.atreides
 			harkonnen: silo.harkonnen
 			corrino: silo.harkonnen
-	WithSiloAnimation:
-		RequiresCondition: !build-incomplete
+	-WithSpriteBody:
+	WithResourceLevelSpriteBody:
+		Sequence: stages
 	StoresResources:
 		PipColor: green
 		PipCount: 5
@@ -426,6 +429,7 @@ light_factory:
 		ProductionQueues: Vehicle
 		SelectionNotification: PrimaryBuildingSelected
 	ProductionBar:
+		ProductionType: Vehicle
 	ProvidesPrerequisite@atreides:
 		Prerequisite: light.atreides
 		Factions: atreides
@@ -507,6 +511,7 @@ heavy_factory:
 		ProductionQueues: Armor
 		SelectionNotification: PrimaryBuildingSelected
 	ProductionBar:
+		ProductionType: Armor
 	ProvidesPrerequisite@atreides:
 		Prerequisite: heavy.atreides
 		Factions: atreides
@@ -669,6 +674,7 @@ starport:
 		RequiresCondition: !build-incomplete
 		Palette: starportlights
 	ProductionBar:
+		ProductionType: Starport
 	PrimaryBuilding:
 		PrimaryCondition: primary
 		ProductionQueues: Starport
@@ -727,6 +733,8 @@ wall:
 	Building:
 		BuildSounds: CHUNG.WAV
 		TerrainTypes: Rock, Concrete
+	FootprintPlaceBuildingPreview:
+		LineBuildSegmentPalette: placelinesegment
 	RequiresBuildableArea:
 		AreaTypes: building
 		Adjacent: 7
@@ -762,6 +770,7 @@ wall:
 		Type: Rectangle
 			TopLeft: -512, -512
 			BottomRight: 512, 512
+	AppearsOnMapPreview:
 	MapEditorData:
 		Categories: Defense
 	Replaceable:
@@ -933,6 +942,7 @@ high_tech_factory:
 	ProductionFromMapEdge:
 		Produces: Aircraft, Upgrade
 	ProductionBar:
+		ProductionType: Aircraft
 	PrimaryBuilding:
 		PrimaryCondition: primary
 		ProductionQueues: Aircraft
@@ -989,6 +999,7 @@ high_tech_factory:
 		CameraActor: camera
 		ArrowSequence: arrow
 		CircleSequence: circles
+		SupportPowerPaletteOrder: 10
 	Power:
 		Amount: -75
 	GrantConditionOnPrerequisite:
@@ -1144,14 +1155,21 @@ palace:
 		BeginChargeSpeechNotification: DeathHandMissilePrepping
 		EndChargeSpeechNotification: DeathHandMissileReady
 		LaunchSpeechNotification: MissileLaunchDetected
-		MissileWeapon: atomic
-		MissileDelay: 19
-		SpawnOffset: -512,1c171,0
+		MissileWeapon: deathhand
+		MissileDelay: 18
+		SpawnOffset: 32,816,0
+		DetonationAltitude: 3c0
+		RemoveMissileOnDetonation: False
 		DisplayBeacon: True
 		DisplayRadarPing: True
 		CameraRange: 10c0
 		ArrowSequence: arrow
 		CircleSequence: circles
+		FlightVelocity: 384
+		TrailInterval: 0
+		TrailImage: large_trail
+		TrailSequences: idle
+		SupportPowerPaletteOrder: 40
 	ProduceActorPower@fremen:
 		Description: Recruit Fremen
 		LongDesc: Elite infantry unit armed with assault rifles and rockets\n  Strong vs Infantry, Vehicles\n  Weak vs Artillery\n  Special Ability: Invisibility
@@ -1165,6 +1183,7 @@ palace:
 		ReadyAudio: Reinforce
 		BlockedAudio: NoRoom
 		OrderName: ProduceActorPower.Fremen
+		SupportPowerPaletteOrder: 20
 	ProduceActorPower@saboteur:
 		Description: Recruit Saboteur
 		LongDesc: Sneaky infantry, armed with explosives\n  Strong vs Buildings\n  Weak vs Everything\n  Special Ability: destroy buildings
@@ -1178,6 +1197,7 @@ palace:
 		ReadyAudio: Reinforce
 		BlockedAudio: NoRoom
 		OrderName: ProduceActorPower.Saboteur
+		SupportPowerPaletteOrder: 30
 	Exit@1:
 		SpawnOffset: -704,768,0
 		ExitCell: -1,2
@@ -1224,17 +1244,6 @@ conyard.harkonnen:
 		BuildPaletteOrder: 1000
 		Prerequisites: ~disabled
 		ForceFaction: harkonnen
-	RenderSprites:
-		Image: conyard.harkonnen
-		-FactionImages:
-
-conyard.corrino:
-	Inherits: construction_yard
-	Buildable:
-		Queue: Building
-		BuildPaletteOrder: 1000
-		Prerequisites: ~disabled
-		ForceFaction: corrino
 	RenderSprites:
 		Image: conyard.harkonnen
 		-FactionImages:
